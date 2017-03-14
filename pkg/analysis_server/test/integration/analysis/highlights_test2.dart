@@ -43,6 +43,7 @@ class Class<TypeParameter> {
 
   Class.constructor() {
     dynamic local = true;
+    local = 7;
     field = {2: local};
   }
 
@@ -136,13 +137,13 @@ int topLevelVariable;
       check(HighlightRegionType.KEYWORD, ['class', 'true', 'return']);
       check(HighlightRegionType.LITERAL_BOOLEAN, ['true']);
       check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
-      check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
+      check(HighlightRegionType.LITERAL_INTEGER, ['7', '2', '42']);
       check(HighlightRegionType.LITERAL_LIST, ['[]']);
       check(HighlightRegionType.LITERAL_MAP,
           ['{1.0: [].toList()}', '{2: local}']);
       check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
-      check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, ['local']);
-      check(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, ['local']);
+      check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, ['local']);
+      check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, ['local']);
       check(HighlightRegionType.INSTANCE_METHOD_REFERENCE, ['toList']);
       check(HighlightRegionType.INSTANCE_METHOD_DECLARATION, ['method']);
       check(HighlightRegionType.STATIC_METHOD_DECLARATION, ['staticMethod']);

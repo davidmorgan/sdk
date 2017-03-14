@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].
@@ -19,6 +20,8 @@ class DartUnitHighlightsComputer2 {
   final CompilationUnit _unit;
 
   final List<HighlightRegion> _regions = <HighlightRegion>[];
+
+  LocalVariableInfo _localVariableInfo;
 
   DartUnitHighlightsComputer2(this._unit);
 
@@ -309,10 +312,19 @@ class DartUnitHighlightsComputer2 {
     if (element is! LocalVariableElement) {
       return false;
     }
+
+    final reassigned =
+        _localVariableInfo.potentiallyMutatedInScope.contains(element) ||
+            _localVariableInfo.potentiallyMutatedInClosure.contains(element);
+
     // OK
     HighlightRegionType type = node.inDeclarationContext()
-        ? HighlightRegionType.LOCAL_VARIABLE_DECLARATION
-        : HighlightRegionType.LOCAL_VARIABLE_REFERENCE;
+        ? (reassigned
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.LOCAL_VARIABLE_DECLARATION)
+        : (reassigned
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE
+            : HighlightRegionType.LOCAL_VARIABLE_REFERENCE);
     return _addRegion_node(node, type);
   }
 
@@ -467,8 +479,17 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    var previousLocalVariableInfo;
+    if (node is FunctionBodyImpl) {
+      previousLocalVariableInfo = computer._localVariableInfo;
+      computer._localVariableInfo = node.localVariableInfo;
+    }
     _addRegions_functionBody(node);
-    return super.visitBlockFunctionBody(node);
+    final result = super.visitBlockFunctionBody(node);
+    if (node is FunctionBodyImpl) {
+      computer._localVariableInfo = previousLocalVariableInfo;
+    }
+    return result;
   }
 
   @override
@@ -550,8 +571,17 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    var previousLocalVariableInfo;
+    if (node is FunctionBodyImpl) {
+      previousLocalVariableInfo = computer._localVariableInfo;
+      computer._localVariableInfo = node.localVariableInfo;
+    }
     _addRegions_functionBody(node);
-    return super.visitExpressionFunctionBody(node);
+    final result = super.visitExpressionFunctionBody(node);
+    if (node is FunctionBodyImpl) {
+      computer._localVariableInfo = previousLocalVariableInfo;
+    }
+    return result;
   }
 
   @override
