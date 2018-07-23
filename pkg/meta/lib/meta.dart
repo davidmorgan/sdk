@@ -244,6 +244,13 @@ class Required {
   const Required([this.reason]);
 }
 
+/// Used to indicate that a [future] is intentionally not `await`-ed in an
+/// `async` context.
+///
+/// For use with the `unawaited_futures` lint, to silence the lint when a
+/// `Future` is intentionally unawaited.
+void unawaited(Future<Object> future) {}
+
 class _AlwaysThrows {
   const _AlwaysThrows();
 }
